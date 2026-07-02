@@ -1,17 +1,16 @@
+```html
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventário Patrimonial Inteligente</title>
+    <title>Sistema de Inventário Inteligente com QR Code</title>
+    <!-- Tailwind CSS para design moderno e responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca QRCode.js para geração de QR Codes de forma rápida e offline -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        /* Estilos de impressão personalizados para isolar a etiqueta */
         @media print {
             body * { visibility: hidden; }
             #areaImpressao, #areaImpressao * { visibility: visible; }
@@ -21,519 +20,128 @@
                 top: 50%; 
                 transform: translate(-50%, -50%); 
                 width: 100%; 
-                max-width: 320px;
-                text-align: center; 
+                max-width: 300px;
+                border: none !important;
+                box-shadow: none !important;
             }
             .no-print { display: none !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-indigo-600 rounded-lg text-white flex items-center justify-center shadow-md shadow-indigo-100">
-                        <span class="material-icons-round">qr_code_2</span>
-                    </div>
-                    <div>
-                        <span class="text-lg font-bold text-slate-900 block leading-tight">PatrimônioQR</span>
-                        <span class="text-xs text-slate-500 block">Gestão de Ativos & Etiquetas</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1 sm:space-x-2">
-                    <button onclick="mudarAba('inventario')" id="btn-inventario" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer bg-indigo-50 text-indigo-700">
-                        <span class="material-icons-round text-lg">inventory_2</span>
-                        <span class="hidden sm:inline">Inventário</span>
-                    </button>
-                    <button onclick="mudarAba('configuracao')" id="btn-configuracao" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer text-slate-600 hover:bg-slate-100">
-                        <span class="material-icons-round text-lg">cloud_sync</span>
-                        <span class="hidden sm:inline">Nuvem (Sheets)</span>
-                    </button>
-                </div>
+    <div class="max-w-6xl mx-auto px-4 py-6 md:py-8">
+        <!-- Cabeçalho -->
+        <header class="mb-6 md:mb-8 border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Controlo de Inventário</h1>
+                <p class="text-slate-500 text-sm mt-1">Registe equipamentos, gere etiquetas com QR Code e sincronize com a nuvem.</p>
             </div>
+            <!-- Abas de Navegação -->
+            <div class="flex bg-slate-200 p-1 rounded-lg self-start sm:self-center">
+                <button onclick="mudarAba('inventario')" id="btnAbaInventario" class="px-4 py-1.5 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm transition">
+                    Inventário
+                </button>
+                <button onclick="mudarAba('config')" id="btnAbaConfig" class="px-4 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 transition">
+                    Nuvem (Sheets)
+                </button>
+            </div>
+        </header>
+
+        <!-- Mensagens de Feedback Personalizadas -->
+        <div id="alertaFeedback" class="hidden mb-6 p-4 rounded-lg text-sm flex items-center justify-between transition-all duration-300">
+            <span id="textoAlerta">Operação realizada com sucesso!</span>
+            <button onclick="fecharAlerta()" class="font-bold text-lg leading-none hover:opacity-75">&times;</button>
         </div>
-    </nav>
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        
-        <!-- Aba de Inventário -->
-        <div id="aba-inventario" class="space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- ABA DO INVENTÁRIO -->
+        <div id="abaInventario" class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            <!-- Formulário de Registo -->
+            <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1 h-fit">
+                <h2 class="text-lg font-bold mb-4 text-slate-900 border-l-4 border-indigo-600 pl-3">Novo Equipamento</h2>
                 
-                <!-- Formulário de Cadastro Lateral -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs h-fit">
-                    <h2 class="text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
-                        <span class="material-icons-round text-indigo-600">add_box</span>
-                        Cadastrar Ativo
-                    </h2>
-                    
-                    <form id="formCadastro" class="space-y-4" onsubmit="salvarEquipamento(event)">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Nome do Equipamento *</label>
-                            <input type="text" id="nome" required placeholder="Ex: Notebook Dell Inspiron" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                        </div>
+                <form id="formInventario" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nome do Equipamento *</label>
+                        <input type="text" id="nome" required placeholder="Ex: Portátil, Monitor, Aparadora" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Marca/Modelo</label>
-                                <input type="text" id="marca" placeholder="Ex: Dell / Vostro" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Nº de Série *</label>
-                                <input type="text" id="serie" required placeholder="Ex: SN987654" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                            </div>
-                        </div>
-
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Categoria</label>
-                            <select id="categoria" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition bg-white">
-                                <option value="TI & Eletrônicos">TI & Eletrônicos</option>
-                                <option value="Móveis & Escritório">Móveis & Escritório</option>
-                                <option value="Ferramentas & Equipamentos">Ferramentas & Equipamentos</option>
-                                <option value="Veículos">Veículos</option>
-                                <option value="Outros">Outros</option>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Marca / Modelo</label>
+                            <input type="text" id="marca" placeholder="Ex: HP ProBook" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nº de Série *</label>
+                            <input type="text" id="serie" required placeholder="Ex: SN-987654" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Categoria</label>
+                        <select id="categoria" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                            <option value="TI / Informática">TI / Informática</option>
+                            <option value="Ferramentas">Ferramentas / Maquinaria</option>
+                            <option value="Mobiliário">Mobiliário / Escritório</option>
+                            <option value="Eletrodomésticos">Eletrodomésticos</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Setor / Local</label>
+                            <input type="text" id="setor" placeholder="Ex: Escritório 3A" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Responsável</label>
+                            <input type="text" id="responsavel" placeholder="Ex: Carlos Silva" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Data Aquisição</label>
+                            <input type="date" id="dataAquisicao" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Estado</label>
+                            <select id="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="Ativo">Ativo</option>
+                                <option value="Manutenção">Em Manutenção</option>
+                                <option value="Abatido">Abatido / Inativo</option>
                             </select>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Setor / Local</label>
-                                <input type="text" id="setor" placeholder="Ex: Recepção" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Responsável</label>
-                                <input type="text" id="responsavel" placeholder="Ex: Ana Souza" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Aquisição</label>
-                                <input type="date" id="dataAquisicao" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Status</label>
-                                <select id="status" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition bg-white">
-                                    <option value="Ativo">Ativo</option>
-                                    <option value="Em Manutenção">Em Manutenção</option>
-                                    <option value="Inativo / Baixado">Inativo / Baixado</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-indigo-100 transition duration-200 text-sm cursor-pointer mt-4 flex items-center justify-center gap-2">
-                            <span class="material-icons-round text-base">save</span>
-                            Cadastrar e Sincronizar
-                        </button>
-                    </form>
-                </div>
-
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs lg:col-span-2 overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <span class="material-icons-round text-indigo-600">list_alt</span>
-                                Equipamentos Cadastrados
-                            </h2>
-                            <p class="text-xs text-slate-500 mt-1">Toque em qualquer linha para abrir a etiqueta de QR Code pronta para impressão.</p>
-                        </div>
-                        <div class="relative w-full sm:w-64">
-                            <span class="material-icons-round absolute left-3 top-2.5 text-slate-400 text-lg">search</span>
-                            <input type="text" id="filtroBusca" oninput="renderizarTabela()" placeholder="Buscar por nome ou série..." class="w-full pl-10 pr-4 py-1.5 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition">
-                        </div>
                     </div>
 
-                    <!-- Tabela responsiva (Modo Tabela em PC / Modo Cards em Celular) -->
-                    <div class="overflow-x-auto">
-                        <!-- Visível apenas no Desktop -->
-                        <table class="w-full text-sm text-left text-slate-600 hidden md:table">
-                            <thead class="text-xs text-slate-400 uppercase bg-slate-50/50 border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-4">Equipamento</th>
-                                    <th class="px-6 py-4">Nº Série</th>
-                                    <th class="px-6 py-4">Local / Responsável</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4 text-right">Etiqueta</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabelaCorpo" class="divide-y divide-slate-100">
-                                <!-- Dados preenchidos via JS -->
-                            </tbody>
-                        </table>
-
-                        <!-- Visível no Mobile (Cards) -->
-                        <div id="listaCardsMobile" class="md:hidden p-4 space-y-3">
-                            <!-- Cards preenchidos via JS -->
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Aba de Configuração / Nuvem -->
-        <div id="aba-configuracao" class="hidden max-w-2xl mx-auto">
-            <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
-                <div class="border-b border-slate-100 pb-4">
-                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <span class="material-icons-round text-emerald-600">sync_alt</span>
-                        Sincronização com o Google Sheets
-                    </h2>
-                    <p class="text-sm text-slate-500 mt-1">Conecte seu inventário local a uma planilha na nuvem para compartilhar os dados em tempo real.</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Link do Web App do Google Apps Script</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="inputSheetsUrl" placeholder="https://script.google.com/macros/s/.../exec" class="flex-grow px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500 transition font-mono">
-                            <button onclick="salvarConfiguracao()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 rounded-xl text-sm transition cursor-pointer flex items-center gap-1.5">
-                                <span class="material-icons-round text-base">save</span>
-                                Salvar
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-2">Os dados cadastrados serão enviados automaticamente para este link.</p>
-                    </div>
-
-                    <!-- Tutorial passo a passo dentro do app -->
-                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4">
-                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                            <span class="material-icons-round text-indigo-600 text-lg">info</span>
-                            Passo a Passo de Instalação (Sem Programar!)
-                        </h3>
-                        <ol class="list-decimal list-inside text-xs text-slate-600 space-y-2.5 leading-relaxed">
-                            <li>Crie uma nova planilha no seu <strong>Google Sheets</strong>.</li>
-                            <li>No menu superior, vá em <strong>Extensões</strong> &gt; <strong>Apps Script</strong>.</li>
-                            <li>Apague tudo o que estiver no editor de código do Google e cole o código abaixo:</li>
-                        </ol>
-
-                        <!-- Box de Código para cópia rápida -->
-                        <div class="relative group">
-                            <textarea id="codigoScript" readonly class="w-full h-44 p-3 bg-slate-900 text-indigo-200 font-mono text-[10px] rounded-xl border-none focus:ring-0 leading-normal scrollbar-none">
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-    
-    // Insere dados organizados em colunas
-    sheet.appendRow([
-      new Date(), // Data do Cadastro
-      data.id,
-      data.nome,
-      data.marca,
-      data.serie,
-      data.categoria,
-      data.setor,
-      data.responsavel,
-      data.dataAquisicao,
-      data.status
-    ]);
-    
-    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
-                         .setMimeType(ContentService.MimeType.JSON);
-  } catch(error) {
-    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
-                         .setMimeType(ContentService.MimeType.JSON);
-  }
-}</textarea>
-                            <button onclick="copiarCodigo()" class="absolute right-3 top-3 bg-white/10 hover:bg-white/20 text-white rounded-lg p-1.5 transition text-xs flex items-center gap-1 cursor-pointer">
-                                <span class="material-icons-round text-sm">content_copy</span>
-                                Copiar Código
-                            </button>
-                        </div>
-
-                        <ol start="4" class="list-decimal list-inside text-xs text-slate-600 space-y-2.5 leading-relaxed">
-                            <li>No Google Apps Script, clique no botão azul <strong>Implantar</strong> &gt; <strong>Nova implantação</strong> no canto superior direito.</li>
-                            <li>Clique na engrenagem ao lado de "Selecione o tipo" e selecione <strong>App da Web</strong>.</li>
-                            <li>Preencha as configurações:
-                                <ul class="list-disc list-inside ml-4 mt-1 space-y-1 text-slate-500">
-                                    <li><strong>Executar como:</strong> <i>Eu (seu e-mail)</i></li>
-                                    <li><strong>Quem tem acesso:</strong> <i>Qualquer pessoa</i></li>
-                                </ul>
-                            </li>
-                            <li>Clique em <strong>Implantar</strong>, autorize as permissões da sua conta Google e <strong>copie a URL fornecida</strong>.</li>
-                            <li>Cole essa URL no campo de texto acima e clique em <strong>Salvar</strong>!</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 py-4 mt-8 no-print">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
-            <p>PatrimônioQR &copy; 2026. Seus dados estão armazenados localmente e na nuvem de forma privada.</p>
-        </div>
-    </footer>
-
-    <!-- Modal do QR Code -->
-    <div id="modalQR" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 no-print">
-        <div class="bg-white p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl border border-slate-100 flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-sm font-bold text-slate-900">Visualizar Etiqueta</span>
-                <button onclick="fecharModal()" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer">
-                    <span class="material-icons-round text-lg">close</span>
-                </button>
-            </div>
-            
-            <!-- Etiqueta Oficial de Impressão -->
-            <div id="areaImpressao" class="bg-white p-4 border-2 border-dashed border-slate-200 rounded-2xl mx-auto w-full max-w-[280px]">
-                <div id="canvasQR" class="flex justify-center p-2 bg-white"></div>
-                <div class="text-left text-[11px] font-mono text-slate-700 border-t border-slate-100 pt-3 mt-2 space-y-1">
-                    <p class="truncate"><strong>ITEM:</strong> <span id="lblNome" class="font-sans font-bold"></span></p>
-                    <p class="truncate"><strong>S/N:</strong> <span id="lblSerie"></span></p>
-                    <p class="truncate"><strong>LOC:</strong> <span id="lblSetor"></span></p>
-                    <p class="truncate"><strong>RESP:</strong> <span id="lblResp"></span></p>
-                </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm transition duration-200 text-sm cursor-pointer mt-2">
+                        Registar Equipamento
+                    </button>
+                </form>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mt-6">
-                <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-100">
-                    <span class="material-icons-round text-base">print</span>
-                    Imprimir
-                </button>
-                <button onclick="fecharModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-xs transition cursor-pointer">
-                    Fechar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Carrega inventário salvo localmente ou cria lista vazia
-        let inventario = JSON.parse(localStorage.getItem('inventario')) || [
-            { id: 1698240000000, nome: 'Notebook MacBook Pro M2', marca: 'Apple', serie: 'C02FG123QW', categoria: 'TI & Eletrônicos', setor: 'Diretoria', responsavel: 'Carlos Lima', dataAquisicao: '2024-03-10', status: 'Ativo' },
-            { id: 1698240010000, nome: 'Furadeira de Impacto', marca: 'Bosch', serie: 'BSH-9080-Z', categoria: 'Ferramentas & Equipamentos', setor: 'Manutenção', responsavel: 'José Rocha', dataAquisicao: '2025-01-15', status: 'Em Manutenção' }
-        ];
-
-        // Carrega URL do script do Sheets do LocalStorage
-        let googleSheetsUrl = localStorage.getItem('googleSheetsUrl') || '';
-
-        // Executar ao iniciar
-        document.getElementById('inputSheetsUrl').value = googleSheetsUrl;
-        if (!localStorage.getItem('inventario')) {
-            localStorage.setItem('inventario', JSON.stringify(inventario));
-        }
-        renderizarTabela();
-
-        // Controla a troca de abas no painel
-        function mudarAba(aba) {
-            const btnInventario = document.getElementById('btn-inventario');
-            const btnConfiguracao = document.getElementById('btn-configuracao');
-            const abaInventario = document.getElementById('aba-inventario');
-            const abaConfiguracao = document.getElementById('aba-configuracao');
-
-            if (aba === 'inventario') {
-                abaInventario.classList.remove('hidden');
-                abaConfiguracao.classList.add('hidden');
-                btnInventario.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer bg-indigo-50 text-indigo-700";
-                btnConfiguracao.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer text-slate-600 hover:bg-slate-100";
-            } else {
-                abaInventario.classList.add('hidden');
-                abaConfiguracao.classList.remove('hidden');
-                btnConfiguracao.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer bg-emerald-50 text-emerald-700";
-                btnInventario.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer text-slate-600 hover:bg-slate-100";
-            }
-        }
-
-        // Salva novos equipamentos localmente e sincroniza na nuvem
-        function salvarEquipamento(e) {
-            e.preventDefault();
-
-            const novoEquipamento = {
-                id: Date.now(),
-                nome: document.getElementById('nome').value,
-                marca: document.getElementById('marca').value || 'Genérica',
-                serie: document.getElementById('serie').value,
-                categoria: document.getElementById('categoria').value,
-                setor: document.getElementById('setor').value || 'Geral',
-                responsavel: document.getElementById('responsavel').value || 'Sem Alocação',
-                dataAquisicao: document.getElementById('dataAquisicao').value || new Date().toISOString().split('T')[0],
-                status: document.getElementById('status').value
-            };
-
-            // Salva de forma resiliente localmente
-            inventario.unshift(novoEquipamento);
-            localStorage.setItem('inventario', JSON.stringify(inventario));
-            
-            renderizarTabela();
-            document.getElementById('formCadastro').reset();
-
-            // Dispara para o Google Sheets se configurado
-            if (googleSheetsUrl) {
-                sincronizarComGoogleSheets(novoEquipamento);
-            }
-        }
-
-        // Dispara requisição HTTP POST assíncrona ao script do Google Sheets
-        function sincronizarComGoogleSheets(item) {
-            fetch(googleSheetsUrl, {
-                method: "POST",
-                mode: "no-cors",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(item)
-            })
-            .then(() => {
-                console.log("Ativo enviado com sucesso ao Google Sheets.");
-            })
-            .catch(error => {
-                console.error("Falha ao sincronizar com Google Sheets:", error);
-            });
-        }
-
-        // Renderiza itens na tabela de Desktop e na lista de Cards de celular
-        function renderizarTabela() {
-            const corpo = document.getElementById('tabelaCorpo');
-            const mobileList = document.getElementById('listaCardsMobile');
-            const termo = document.getElementById('filtroBusca').value.toLowerCase();
-
-            corpo.innerHTML = '';
-            mobileList.innerHTML = '';
-
-            const itensFiltrados = inventario.filter(item => 
-                item.nome.toLowerCase().includes(termo) || 
-                item.serie.toLowerCase().includes(termo) ||
-                item.setor.toLowerCase().includes(termo)
-            );
-
-            if (itensFiltrados.length === 0) {
-                const vazioHtml = `
-                    <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400">Nenhum equipamento correspondente encontrado.</td></tr>
-                `;
-                corpo.innerHTML = vazioHtml;
-                mobileList.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">Nenhum equipamento correspondente encontrado.</p>`;
-                return;
-            }
-
-            itensFiltrados.forEach(item => {
-                const badgeColor = item.status === 'Ativo' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : item.status === 'Em Manutenção' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-rose-50 text-rose-700 border-rose-100';
-
-                // Desktop Table Row
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/50 transition cursor-pointer group";
-                tr.onclick = (e) => {
-                    // Impede clique ao interagir com ações que não sejam visualizar a linha
-                    if(e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
-                        abrirQR(item.id);
-                    }
-                };
-                tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-semibold text-slate-900 group-hover:text-indigo-600 transition">${item.nome}</div>
-                        <div class="text-xs text-slate-400">${item.marca} &bull; ${item.categoria}</div>
-                    </td>
-                    <td class="px-6 py-4 font-mono text-xs text-slate-500">${item.serie}</td>
-                    <td class="px-6 py-4">
-                        <div class="text-slate-700 font-medium">${item.setor}</div>
-                        <div class="text-xs text-slate-400">${item.responsavel}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full border ${badgeColor}">${item.status}</span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="abrirQR(${item.id})" class="p-1.5 bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded-lg transition cursor-pointer">
-                            <span class="material-icons-round text-lg">qr_code</span>
-                        </button>
-                    </td>
-                `;
-                corpo.appendChild(tr);
-
-                // Mobile Card Layout
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3";
-                card.onclick = () => abrirQR(item.id);
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-sm">${item.nome}</h3>
-                            <p class="text-xs text-slate-400">${item.marca} &bull; ${item.categoria}</p>
-                        </div>
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${badgeColor}">${item.status}</span>
+            <!-- Tabela de Itens Cadastrados -->
+            <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-slate-900 border-l-4 border-indigo-600 pl-3">Equipamentos Registados</h2>
+                        <span id="contadorItens" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">0 Itens</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs border-t border-slate-100 pt-2 text-slate-500">
-                        <div><strong>S/N:</strong> ${item.serie}</div>
-                        <div><strong>Local:</strong> ${item.setor}</div>
-                    </div>
-                `;
-                mobileList.appendChild(card);
-            });
-        }
+                    <!-- Barra de pesquisa rápida para ajudar no telemóvel -->
+                    <input type="text" id="buscaEquipamento" oninput="filtrarTabela()" placeholder="Pesquisar por nome ou série..." class="w-full sm:w-64 px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
+                </div>
+                
+                <div class="overflow-x-auto rounded-lg border border-slate-100">
+                    <table class="w-full text-sm text-left text-slate-600">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th class="px-4 py-3">Equipamento</th>
+                                <th class="px-4 py-3">Nº Série</th>
+                                <th class="px-4 py-3">Setor</th>
+                                <th class="px-4 py-3">Estado</th>
+                                <th class="px-4 py-3 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody
 
-        // Unicode Safe encoder para prevenir bugs de acentuação portuguesa no QRCode.js
-        function encodeUnicode(str) {
-            return unescape(encodeURIComponent(str));
-        }
-
-        // Abre o modal e renderiza o QR Code com dados estruturados
-        function abrirQR(id) {
-            const item = inventario.find(i => i.id === id);
-            if (!item) return;
-
-            document.getElementById('canvasQR').innerHTML = '';
-
-            // Texto estruturado que será lido pelo leitor de QR
-            const dadosEtiqueta = `PATRIMONIO-ID: ${item.id}\nEQUIPAMENTO: ${item.nome}\nMARCA/MOD: ${item.marca}\nSERIE: ${item.serie}\nSETOR: ${item.setor}\nRESP: ${item.responsavel}\nSTATUS: ${item.status}`;
-
-            new QRCode(document.getElementById('canvasQR'), {
-                text: encodeUnicode(dadosEtiqueta),
-                width: 140,
-                height: 140,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            // Preenche textos da etiqueta
-            document.getElementById('lblNome').innerText = item.nome;
-            document.getElementById('lblSerie').innerText = item.serie;
-            document.getElementById('lblSetor').innerText = item.setor;
-            document.getElementById('lblResp').innerText = item.responsavel;
-
-            document.getElementById('modalQR').classList.remove('hidden');
-        }
-
-        function fecharModal() {
-            document.getElementById('modalQR').classList.add('hidden');
-        }
-
-        // Copia o código do Google Script do passo a passo automaticamente
-        function copiarCodigo() {
-            const textarea = document.getElementById('codigoScript');
-            textarea.select();
-            document.execCommand('copy');
-            
-            // Feedback simples e moderno na UI
-            const btn = event.currentTarget;
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = `<span class="material-icons-round text-sm">done</span> Copiado!`;
-            btn.classList.add('bg-emerald-600/30', 'text-emerald-300');
-            
-            setTimeout(() => {
-                btn.innerHTML = textoOriginal;
-                btn.classList.remove('bg-emerald-600/30', 'text-emerald-300');
-            }, 2000);
-        }
-
-        // Salva a URL do Sheets no LocalStorage
-        function salvarConfiguracao() {
-            const urlInput = document.getElementById('inputSheetsUrl').value.trim();
-            googleSheetsUrl = urlInput;
-            localStorage.setItem('googleSheetsUrl', urlInput);
-
-            // Aviso de sucesso discreto e rápido
-            const notify = document.createElement('div');
-            notify.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 z-50 animate-bounce";
-            notify.innerHTML = `<span class="material-icons-round text-emerald-400 text-sm">check_circle</span> Configuração salva e integrada com sucesso!`;
-            document.body.appendChild(notify);
-            
-            setTimeout(() => notify.remove(), 3000);
-            mudarAba('inventario');
-        }
-    </script>
-</body>
-</html>
+```
