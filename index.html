@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -16,9 +15,11 @@
             .print-active, .print-active * { visibility: visible !important; }
             .print-active { 
                 position: absolute !important; 
-                left: 0 !important; 
-                top: 0 !important; 
+                left: 50% !important; 
+                top: 50% !important; 
+                transform: translate(-50%, -50%) !important; 
                 width: 100% !important; 
+                max-width: 320px !important;
                 border: none !important;
                 box-shadow: none !important;
             }
@@ -70,14 +71,65 @@
 
         <!-- ABA DO INVENTÁRIO -->
         <div id="abaInventario" class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            <!-- Formulário de Registo -->
+            <!-- Formulário de Registro -->
             <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1 h-fit">
                 <h2 class="text-lg font-bold mb-4 text-slate-950 border-l-4 border-[#9ada55] pl-3">Novo Equipamento</h2>
                 
                 <form id="formInventario" class="space-y-4">
+                    <!-- Código de Referência e Numeração Autocompletável -->
+                    <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Cód. Referência *</label>
+                            <select id="refCodigo" required onchange="calcularProximoNumeroRef()" class="w-full px-2 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-xs bg-white font-mono font-bold text-slate-700">
+                                <option value="" disabled selected>Sigla...</option>
+                                <option value="ESTERI">ESTERI</option>
+                                <option value="MMICRO">MMICRO</option>
+                                <option value="BAL">BAL</option>
+                                <option value="BAN">BAN</option>
+                                <option value="CAM">CAM</option>
+                                <option value="CENTRI">CENTRI</option>
+                                <option value="GAS">GAS</option>
+                                <option value="MBIO">MBIO</option>
+                                <option value="CPU">CPU</option>
+                                <option value="EST">EST</option>
+                                <option value="ETIQ">ETIQ</option>
+                                <option value="GEL">GEL</option>
+                                <option value="BIOMOL">BIOMOL</option>
+                                <option value="IMP">IMP</option>
+                                <option value="LEICARD">LEICARD</option>
+                                <option value="LEITOR">LEITOR</option>
+                                <option value="TEL">TEL</option>
+                                <option value="MON">MON</option>
+                                <option value="ATEN">ATEN</option>
+                                <option value="NOB">NOB</option>
+                                <option value="NOTE">NOTE</option>
+                                <option value="MIM">MIM</option>
+                                <option value="WIFI">WIFI</option>
+                                <option value="MHEM">MHEM</option>
+                                <option value="SWITCH">SWITCH</option>
+                                <option value="TABLET">TABLET</option>
+                                <option value="URI">URI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Numeração *</label>
+                            <input type="text" id="refNumero" required placeholder="Ex: 001" class="w-full px-2 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-xs font-mono font-bold text-slate-700">
+                        </div>
+                    </div>
+
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Nome do Equipamento *</label>
-                        <input type="text" id="nome" required placeholder="Ex: Centrífuga, Microscópio, Pipetador" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-sm">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Nome do Equipamento *</label>
+                            <button type="button" onclick="abrirModalOpcao('equipamento')" class="text-xs text-[#85bc4b] hover:text-[#72a13f] font-bold flex items-center gap-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+                                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                </svg>
+                                Criar Novo
+                            </button>
+                        </div>
+                        <select id="nome" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-sm bg-white">
+                            <!-- Preenchido via JS -->
+                        </select>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -104,8 +156,18 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Setor / Sala</label>
-                            <input type="text" id="setor" placeholder="Ex: Hematologia, Triagem" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Setor / Sala *</label>
+                                <button type="button" onclick="abrirModalOpcao('setor')" class="text-xs text-[#85bc4b] hover:text-[#72a13f] font-bold flex items-center gap-0.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
+                                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                    </svg>
+                                    Novo
+                                </button>
+                            </div>
+                            <select id="setor" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-sm bg-white">
+                                <!-- Preenchido via JS -->
+                            </select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Responsável</label>
@@ -129,7 +191,7 @@
                     </div>
 
                     <button type="submit" class="w-full bg-[#9ada55] hover:bg-[#85bc4b] text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition duration-200 text-sm cursor-pointer mt-2">
-                        Registar Equipamento
+                        Registrar Equipamento
                     </button>
                 </form>
             </div>
@@ -138,18 +200,18 @@
             <div class="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                     <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-bold text-slate-900 border-l-4 border-[#9ada55] pl-3">Equipamentos Registados</h2>
+                        <h2 class="text-lg font-bold text-slate-900 border-l-4 border-[#9ada55] pl-3">Equipamentos Registrados</h2>
                         <span id="contadorItens" class="bg-[#9ada55]/10 text-[#85bc4b] text-xs font-bold px-2.5 py-1 rounded-full">0 Itens</span>
                     </div>
                     <!-- Barra de pesquisa rápida -->
-                    <input type="text" id="buscaEquipamento" oninput="filtrarTabela()" placeholder="Pesquisar por nome ou série..." class="w-full sm:w-64 px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-xs">
+                    <input type="text" id="buscaEquipamento" oninput="filtrarTabela()" placeholder="Pesquisar por nome, sigla ou série..." class="w-full sm:w-64 px-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-xs">
                 </div>
                 
                 <div class="overflow-x-auto rounded-lg border border-slate-100">
                     <table class="w-full text-sm text-left text-slate-600">
                         <thead class="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
-                                <th class="px-4 py-3">Equipamento</th>
+                                <th class="px-4 py-3">Referência / Equipamento</th>
                                 <th class="px-4 py-3">Nº Série</th>
                                 <th class="px-4 py-3">Sala / Setor</th>
                                 <th class="px-4 py-3">Estado</th>
@@ -223,7 +285,7 @@
         <!-- ABA DE CONFIGURAÇÃO (GOOGLE SHEETS) -->
         <div id="abaConfig" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h2 class="text-xl font-bold mb-2 text-slate-900 border-l-4 border-[#9ada55] pl-3">Ligação ao Google Sheets</h2>
-            <p class="text-slate-600 text-sm mb-6">Guarde backups automáticos de cada registo diretamente numa folha de cálculo online no seu Google Drive.</p>
+            <p class="text-slate-600 text-sm mb-6">Guarde backups automáticos de cada registro diretamente numa folha de cálculo online no seu Google Drive.</p>
             
             <div class="space-y-4">
                 <div>
@@ -240,8 +302,8 @@
                 <h3 class="text-sm font-bold text-slate-950 mb-3">Como ativar no Google Sheets:</h3>
                 <ol class="list-decimal list-inside text-xs text-slate-600 space-y-3">
                     <li>Crie uma nova folha de cálculo no Google Sheets e adicione os seguintes títulos na primeira linha:
-                        <div class="bg-slate-50 p-2 rounded-md font-mono text-[11px] text-emerald-700 border border-slate-100 my-1 overflow-x-auto">
-                            Nome | Marca | Série | Categoria | Setor | Responsável | Data | Estado
+                        <div class="bg-slate-50 p-2 rounded-md font-mono text-[11px] text-[#85bc4b] border border-slate-100 my-1 overflow-x-auto">
+                            Referência | Nome | Marca | Série | Categoria | Setor | Responsável | Data | Estado
                         </div>
                     </li>
                     <li>No menu superior do Google Sheets, clique em <strong>Extensões > Apps Script</strong>.</li>
@@ -261,6 +323,27 @@
         </div>
     </div>
 
+    <!-- MODAL DE CADASTRO RÁPIDO DE OPÇÕES -->
+    <div id="modalCadastroOpcao" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-xl border border-slate-100">
+            <h3 id="modalOpcaoTitulo" class="text-lg font-bold text-slate-900 mb-1">Cadastrar Nova Opção</h3>
+            <p id="modalOpcaoDescricao" class="text-xs text-slate-500 mb-4">Insira o nome para adicionar à lista.</p>
+            
+            <div class="space-y-3 mb-5">
+                <input type="text" id="novoItemValor" placeholder="Digite o novo nome..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9ada55] text-sm uppercase">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="salvarNovaOpcao()" class="flex-1 bg-[#9ada55] hover:bg-[#85bc4b] text-white font-semibold py-2 rounded-lg text-sm transition cursor-pointer">
+                    Adicionar
+                </button>
+                <button onclick="fecharModalOpcao()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-sm transition cursor-pointer">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DO QR CODE (ETIQUETA) -->
     <div id="modalQR" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
         <div id="recipienteImpressaoEtiqueta" class="bg-white p-6 rounded-2xl max-w-sm w-full text-center shadow-xl border border-slate-100">
@@ -269,6 +352,9 @@
             
             <!-- Caixa física da etiqueta para impressão perfeita -->
             <div id="areaImpressao" class="bg-white p-5 inline-block border-2 border-dashed border-slate-300 rounded-xl my-2 mx-auto">
+                <!-- Código de Referência gigante em cima do QR Code (Padrão corporativo de identificação) -->
+                <div class="text-center font-mono font-black text-xl text-[#85bc4b] border-b border-slate-100 pb-2 mb-3 tracking-wide" id="printReferencia"></div>
+                
                 <div id="canvasQR" class="flex justify-center mb-4"></div>
                 <div class="text-left text-[11px] font-mono text-slate-700 border-t border-slate-100 pt-3 space-y-1">
                     <p class="truncate"><strong>LAB:</strong> PASTEUR</p>
@@ -340,12 +426,12 @@
         <table class="w-full text-xs text-left border-collapse border border-slate-300">
             <thead>
                 <tr class="bg-slate-100 border-b border-slate-300">
+                    <th class="px-3 py-2 border border-slate-300">Referência</th>
                     <th class="px-3 py-2 border border-slate-300">Equipamento</th>
-                    <th class="px-3 py-2 border border-slate-300">Marca / Modelo</th>
+                    <th class="px-3 py-2 border border-slate-200">Marca / Modelo</th>
                     <th class="px-3 py-2 border border-slate-300">Nº de Série</th>
                     <th class="px-3 py-2 border border-slate-300">Categoria</th>
                     <th class="px-3 py-2 border border-slate-300">Setor / Sala</th>
-                    <th class="px-3 py-2 border border-slate-300">Responsável</th>
                     <th class="px-3 py-2 border border-slate-300">Estado</th>
                 </tr>
             </thead>
@@ -360,16 +446,141 @@
     </div>
 
     <script>
+        // Listas padrão de Equipamentos e Setores
+        const defaultEquipamentos = [
+            "BALANÇAS", "BANHO MARIA", "CABINE SEGURANÇA", "CENTRÍFUGA", "COMPUTADORES",
+            "DIAGNÓSTICO", "EQUIP. ATENDIMENTO", "ESTABILIZADORES", "ESTERILIZADOR", "ESTUFA",
+            "ETIQUETADORAS", "FORNO", "GELADEIRA", "IMPRESSORAS", "LEITORES", "MICROSCÓPIO",
+            "MIXER", "MONITORES", "MOUSES", "NOBREAKS", "NOTEBOOKS", "OSCILADOR",
+            "ROTEADORES DE BORDA", "ROTEADORES WIFI", "SWITCHES", "TABLET", "TECLADOS",
+            "TELEFONIA", "TERMOMETROS", "VIDEOCONFERÊNCIA"
+        ];
+
+        const defaultSetores = [
+            "CENTRAL DE ATENDIMENTO", "FATURAMENTO", "FINANCEIRO", "SETOR TÉCNICO",
+            "UNIDADE WILSON AITA", "UNIDADE PM", "UNIDADE VIDA CARD", "UNIDADE HRSM",
+            "UNIDADE CS", "UNIDADE HSF", "UNIDADE UNIMED", "UNIDADE SÃO SEPÉ",
+            "DIRETORIA", "UNIDADE AGUDO", "UNIDADE DUQUE DE CAXIAS", "UNIDADE EUCLIDE DA CUNHA",
+            "UNIDADE VENÂNCIO AIRES", "UNIDADE TN", "UNIDADE CAMOBI"
+        ];
+
         // Carrega as configurações do localStorage para persistência de dados local
         let inventario = JSON.parse(localStorage.getItem('inventario')) || [];
         let URL_DO_GOOGLE_SCRIPT = localStorage.getItem('urlGoogleSheets') || "";
         let itemSelecionadoParaExclusao = null;
 
+        let listaEquipamentos = JSON.parse(localStorage.getItem('listaEquipamentos')) || defaultEquipamentos;
+        let listaSetores = JSON.parse(localStorage.getItem('listaSetores')) || defaultSetores;
+        let tipoCadastroRapido = "";
+
         // Inicializar aplicação
-        document.getElementById('formInventario').addEventListener('submit', registarEquipamento);
+        document.getElementById('formInventario').addEventListener('submit', registrarEquipamento);
         document.getElementById('inputUrlSheets').value = URL_DO_GOOGLE_SCRIPT;
         
+        renderizarDropdowns();
         renderizarTabela();
+
+        // Renderiza as opções de equipamentos e setores de forma alfabética
+        function renderizarDropdowns() {
+            const selectNome = document.getElementById('nome');
+            const selectSetor = document.getElementById('setor');
+
+            listaEquipamentos.sort((a, b) => a.localeCompare(b));
+            listaSetores.sort((a, b) => a.localeCompare(b));
+
+            // Dropdown de Equipamentos
+            selectNome.innerHTML = `<option value="" disabled selected>Selecione o equipamento...</option>`;
+            listaEquipamentos.forEach(item => {
+                selectNome.innerHTML += `<option value="${item}">${item}</option>`;
+            });
+
+            // Dropdown de Setores
+            selectSetor.innerHTML = `<option value="" disabled selected>Selecione o setor...</option>`;
+            listaSetores.forEach(setor => {
+                selectSetor.innerHTML += `<option value="${setor}">${setor}</option>`;
+            });
+        }
+
+        // Calcula dinamicamente o próximo número ordenado para a sigla selecionada
+        function calcularProximoNumeroRef() {
+            const siglaSelecionada = document.getElementById('refCodigo').value;
+            if (!siglaSelecionada) return;
+
+            // Filtra os itens existentes que contêm a mesma sigla
+            const correspondentes = inventario.filter(item => item.refCodigo === siglaSelecionada);
+            
+            let proximoNumero = 1;
+            if (correspondentes.length > 0) {
+                // Extrai os valores numéricos convertidos
+                const numeros = correspondentes.map(item => parseInt(item.refNumero) || 0);
+                proximoNumero = Math.max(...numeros) + 1;
+            }
+
+            // Formata o número com 3 dígitos (ex: 001, 002, 015)
+            document.getElementById('refNumero').value = String(proximoNumero).padStart(3, '0');
+        }
+
+        // Cadastro rápido de novas opções para dropdown
+        function abrirModalOpcao(tipo) {
+            tipoCadastroRapido = tipo;
+            const modal = document.getElementById('modalCadastroOpcao');
+            const titulo = document.getElementById('modalOpcaoTitulo');
+            const descricao = document.getElementById('modalOpcaoDescricao');
+            const input = document.getElementById('novoItemValor');
+
+            input.value = "";
+            modal.classList.remove('hidden');
+
+            if (tipo === 'equipamento') {
+                titulo.innerText = "Novo Equipamento";
+                descricao.innerText = "Insira o nome do equipamento para adicionar à lista geral.";
+                input.placeholder = "Ex: BANHO SECO";
+            } else {
+                titulo.innerText = "Novo Setor / Unidade";
+                descricao.innerText = "Insira o nome da unidade para incluir no menu.";
+                input.placeholder = "Ex: UNIDADE CENTRO";
+            }
+            input.focus();
+        }
+
+        // Fecha o modal de cadastro rápido de opções
+        function fecharModalOpcao() {
+            document.getElementById('modalCadastroOpcao').classList.add('hidden');
+        }
+
+        function salvarNovaOpcao() {
+            const input = document.getElementById('novoItemValor');
+            const valor = input.value.trim().toUpperCase();
+
+            if (!valor) {
+                mostrarAlerta("Preencha um valor válido!", "rose");
+                return;
+            }
+
+            if (tipoCadastroRapido === 'equipamento') {
+                if (listaEquipamentos.includes(valor)) {
+                    mostrarAlerta("Este equipamento já existe na lista!", "rose");
+                    return;
+                }
+                listaEquipamentos.push(valor);
+                localStorage.setItem('listaEquipamentos', JSON.stringify(listaEquipamentos));
+                renderizarDropdowns();
+                document.getElementById('nome').value = valor;
+                mostrarAlerta("Equipamento cadastrado com sucesso!", "success");
+            } else {
+                if (listaSetores.includes(valor)) {
+                    mostrarAlerta("Este setor já existe na lista!", "rose");
+                    return;
+                }
+                listaSetores.push(valor);
+                localStorage.setItem('listaSetores', JSON.stringify(listaSetores));
+                renderizarDropdowns();
+                document.getElementById('setor').value = valor;
+                mostrarAlerta("Setor cadastrado com sucesso!", "success");
+            }
+
+            fecharModalOpcao();
+        }
 
         // Alternador de Abas de Navegação (Inventário / Relatórios / Configurações)
         function mudarAba(aba) {
@@ -403,12 +614,18 @@
             }
         }
 
-        // Função de Registo de Novo Equipamento
-        function registarEquipamento(e) {
+        // Função de Registro de Novo Equipamento
+        function registrarEquipamento(e) {
             e.preventDefault();
+
+            const refCodigo = document.getElementById('refCodigo').value;
+            const refNumero = document.getElementById('refNumero').value.trim().padStart(3, '0');
 
             const novoItem = {
                 id: Date.now(),
+                refCodigo: refCodigo,
+                refNumero: refNumero,
+                referencia: `${refCodigo}-${refNumero}`, // Ex: BAL-001
                 nome: document.getElementById('nome').value,
                 marca: document.getElementById('marca').value || 'N/D',
                 serie: document.getElementById('serie').value,
@@ -431,7 +648,7 @@
                 enviarParaGoogleSheets(novoItem);
             }
 
-            mostrarAlerta("Equipamento registado com sucesso!", "success");
+            mostrarAlerta("Equipamento registrado com sucesso!", "success");
         }
 
         // Sincronização com o Sheets (via POST no-cors)
@@ -460,14 +677,18 @@
                 return;
             }
 
+            // Ordena os itens pela referência patrimonial por padrão
+            listaExibida.sort((a, b) => a.referencia.localeCompare(b.referencia));
+
             listaExibida.forEach(item => {
                 const corStatus = item.status === 'Ativo' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Manutenção' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800';
                 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition duration-150';
                 tr.innerHTML = `
-                    <td class="px-4 py-3">
-                        <div class="font-semibold text-slate-900 text-xs md:text-sm">${item.nome}</div>
+                    <td class="px-4 py-3 flex flex-col justify-start">
+                        <div class="font-bold text-xs md:text-sm text-[#85bc4b] font-mono leading-tight tracking-wider mb-0.5">${item.referencia}</div>
+                        <div class="font-semibold text-slate-800 text-xs md:text-sm">${item.nome}</div>
                         <div class="text-[10px] md:text-xs text-slate-400">${item.marca} • ${item.categoria}</div>
                     </td>
                     <td class="px-4 py-3 font-mono text-[10px] md:text-xs text-slate-700">${item.serie}</td>
@@ -496,6 +717,7 @@
             const filtrados = inventario.filter(item => 
                 item.nome.toLowerCase().includes(termo) || 
                 item.serie.toLowerCase().includes(termo) ||
+                item.referencia.toLowerCase().includes(termo) ||
                 item.marca.toLowerCase().includes(termo)
             );
             renderizarTabela(filtrados);
@@ -510,6 +732,10 @@
         function fecharModalExclusao() {
             document.getElementById('modalExclusao').classList.add('hidden');
             itemSelecionadoParaExclusao = null;
+        }
+
+        function toggleModalExclusao() {
+            fecharModalExclusao();
         }
 
         function executarExclusao() {
@@ -570,16 +796,17 @@
         // Exportação Dinâmica para CSV
         function exportarCSV() {
             if (inventario.length === 0) {
-                mostrarAlerta("Não há equipamentos registados para exportar.", "rose");
+                mostrarAlerta("Não há equipamentos registrados para exportar.", "rose");
                 return;
             }
 
             // Cabeçalho compatível com Excel (separador por ponto e vírgula ';')
             let csvContent = "\uFEFF"; // Byte Order Mark (BOM) para evitar problemas de acentuação no Excel
-            csvContent += "Nome;Marca / Modelo;Número de Série;Categoria;Setor / Localização;Responsável;Data Aquisição;Estado\r\n";
+            csvContent += "Referencia;Nome;Marca / Modelo;Número de Série;Categoria;Setor / Localização;Responsável;Data Aquisição;Estado\r\n";
 
             inventario.forEach(item => {
                 const linha = [
+                    item.referencia,
                     item.nome,
                     item.marca,
                     item.serie,
@@ -626,16 +853,19 @@
             const tbody = document.getElementById('tabelaRelatorioCorpo');
             tbody.innerHTML = '';
 
+            // Ordena o inventário para o relatório físico
+            inventario.sort((a, b) => a.referencia.localeCompare(b.referencia));
+
             inventario.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-slate-200 hover:bg-slate-50';
                 tr.innerHTML = `
+                    <td class="px-3 py-2 border border-slate-200 font-mono font-bold text-[#85bc4b]">${item.referencia}</td>
                     <td class="px-3 py-2 border border-slate-200 font-semibold">${item.nome}</td>
                     <td class="px-3 py-2 border border-slate-200">${item.marca}</td>
                     <td class="px-3 py-2 border border-slate-200 font-mono">${item.serie}</td>
                     <td class="px-3 py-2 border border-slate-200">${item.categoria}</td>
                     <td class="px-3 py-2 border border-slate-200">${item.setor}</td>
-                    <td class="px-3 py-2 border border-slate-200">${item.responsavel}</td>
                     <td class="px-3 py-2 border border-slate-200">${item.status}</td>
                 `;
                 tbody.appendChild(tr);
@@ -660,7 +890,7 @@
 
             document.getElementById('canvasQR').innerHTML = '';
 
-            const dadosQR = `LAB PASTEUR\nID: ${item.id}\nITEM: ${item.nome}\nMOD: ${item.marca}\nS/N: ${item.serie}\nLOC: ${item.setor}\nSTATUS: ${item.status}`;
+            const dadosQR = `LAB PASTEUR\nREF: ${item.referencia}\nITEM: ${item.nome}\nMOD: ${item.marca}\nS/N: ${item.serie}\nLOC: ${item.setor}\nSTATUS: ${item.status}`;
 
             new QRCode(document.getElementById('canvasQR'), {
                 text: dadosQR,
@@ -671,6 +901,7 @@
                 correctLevel : QRCode.CorrectLevel.H
             });
 
+            document.getElementById('printReferencia').innerText = item.referencia;
             document.getElementById('printNome').innerText = item.nome;
             document.getElementById('printMarca').innerText = item.marca;
             document.getElementById('printSerie').innerText = item.serie;
@@ -706,9 +937,9 @@
         // Sistema de Feedback Visual Customizado
         function mostrarAlerta(mensagem, tipo = "success") {
             const alerta = document.getElementById('alertaFeedback');
-            const texto = document.getElementById('textoAlerta');
+            const text = document.getElementById('textoAlerta');
 
-            texto.innerText = mensagem;
+            text.innerText = message;
             alerta.classList.remove('hidden');
 
             if (tipo === "success") {
@@ -726,13 +957,14 @@
             document.getElementById('alertaFeedback').classList.add('hidden');
         }
 
-        // Copia o código do Apps Script
+        // Copia o código do Apps Script compatível com o novo código de referência
         function copiarCodigoAppsScript() {
             const codigo = `function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = JSON.parse(e.postData.contents);
     var row = [
+      data.referencia,
       data.nome,
       data.marca,
       data.serie,
@@ -765,5 +997,3 @@
     </script>
 </body>
 </html>
-
-```
